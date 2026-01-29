@@ -148,27 +148,34 @@ a:hover {
     }
 
     .centered-header {
-        margin-bottom: 1.5rem;
-        padding-bottom: 1rem;
+        margin-top: 0;
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
     }
 
     .centered-header .entry-title {
-        font-size: 2rem;
+        font-size: 1.8rem;
         letter-spacing: -0.5px;
+        margin-bottom: 0.5rem;
+    }
+
+    .author-meta-row {
+        margin-bottom: 1rem;
+        padding-bottom: 0.5rem;
     }
 
     .lead-text {
-        font-size: 1.15rem;
-        margin-bottom: 1.5rem;
+        font-size: 1.1rem;
+        margin-bottom: 1rem;
     }
 
     .feature-image-wrapper {
-        margin-bottom: 1.5rem;
+        margin-bottom: 1rem;
     }
 
     /* Bring content up */
     .site-content-wrapper {
-        margin-top: 1rem;
+        margin-top: 0.5rem;
     }
 }
 
@@ -323,14 +330,15 @@ a:hover {
 
 .centered-header {
     text-align: center;
-    margin-bottom: 4rem;
+    margin-bottom: 1.5rem;
+    /* Drastically reduced from 4rem */
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 2rem;
+    padding-bottom: 1.5rem;
 }
 
 .centered-header .entry-title {
     font-size: 3.5rem;
-    margin-bottom: 1.5rem;
+    margin-bottom: 0.75rem;
     letter-spacing: -1.5px;
 }
 
@@ -346,7 +354,7 @@ a:hover {
     font-size: 1.5rem;
     color: #444;
     font-style: italic;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
 }
 
 /* Article Styling */
@@ -369,9 +377,9 @@ a:hover {
     display: flex;
     align-items: center;
     gap: 1rem;
-    margin-bottom: 2rem;
+    margin-bottom: 1.5rem;
     border-bottom: 1px solid var(--border-color);
-    padding-bottom: 1.5rem;
+    padding-bottom: 1rem;
 }
 
 .author-name {
@@ -382,9 +390,10 @@ a:hover {
 }
 
 .feature-image-wrapper {
-    margin-bottom: 3rem;
+    margin-bottom: 1.5rem;
 }
 
+/* Reduced from 3rem */
 .wp-caption-text {
     font-size: 0.85rem;
     color: #666;
@@ -570,6 +579,12 @@ a:hover {
     color: #aaa;
     text-transform: uppercase;
     margin: 2.5rem 0;
+}
+
+/* Reduce spacing for the very first ad slot specifically */
+.entry-content>.winup-ad-slot:first-child {
+    margin-top: 0;
+    margin-bottom: 2rem;
 }
 
 .winup-ad-slot::before {
