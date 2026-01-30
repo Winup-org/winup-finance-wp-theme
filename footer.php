@@ -3,7 +3,11 @@
 
         <!-- Column 1: Brand & About -->
         <div class="footer-col brand-col">
-            <h3 class="footer-title"><?php bloginfo('name'); ?></h3>
+            <a href="<?php echo esc_url(home_url('/')); ?>" rel="home" class="footer-logo-link">
+                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo_uscursosesc_blackbg.png" 
+                     alt="<?php bloginfo('name'); ?>" 
+                     class="footer-logo">
+            </a>
             <p class="footer-desc"><?php bloginfo('description'); ?></p>
             <div class="social-links-footer">
                 <!-- Demo Socials -->
@@ -41,6 +45,33 @@
             </div>
         </div>
 
+    </div>
+
+    <!-- Trust Badges (Credibilidade) -->
+    <div class="container trust-badges-container">
+        <div class="trust-badges">
+            <div class="trust-badge trust-badge--secure">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                <span>SSL Secure</span>
+            </div>
+            <div class="trust-badge trust-badge--verified">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
+                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
+                </svg>
+                <span>Verified Content</span>
+            </div>
+            <div class="trust-badge">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
+                    <circle cx="12" cy="7" r="4"></circle>
+                </svg>
+                <span>Expert Reviewed</span>
+            </div>
+        </div>
     </div>
 
     <div class="container site-bottom">

@@ -10,6 +10,11 @@ if (!defined('ABSPATH')) {
 /**
  * Setup do Tema
  */
+/**
+ * Theme Options Panel
+ */
+require get_template_directory() . '/inc/theme-options.php';
+
 function winup_setup()
 {
     // Suporte a Título da Página automático
@@ -98,6 +103,28 @@ remove_action('admin_print_scripts', 'print_emoji_detection_script');
 remove_action('admin_print_styles', 'print_emoji_styles');
 
 /**
+ * Lazy Loading para Imagens (Performance)
+ * Adiciona loading="lazy" em todas as imagens do conteúdo
+ */
+function winup_add_lazy_loading($content)
+{
+    if (is_admin()) {
+        return $content;
+    }
+    
+    // Adiciona loading="lazy" em imagens que não têm o atributo
+    $content = preg_replace(
+        '/<img((?!loading=)[^>]*)>/i',
+        '<img$1 loading="lazy">',
+        $content
+    );
+    
+    return $content;
+}
+add_filter('the_content', 'winup_add_lazy_loading', 99);
+add_filter('post_thumbnail_html', 'winup_add_lazy_loading', 99);
+
+/**
  * Breadcrumb Helper
  */
 function winup_breadcrumb()
@@ -123,7 +150,7 @@ function winup_breadcrumb()
 }
 
 /**
- * Customizer para Ads
+ * Customizer para Ads - Configuração expandida
  */
 function winup_customize_register($wp_customize)
 {
@@ -133,28 +160,25 @@ function winup_customize_register($wp_customize)
         'priority' => 30,
     ));
 
-    // Placeholder Default (336x280)
-    $placeholder_html = '<div style="background:#eee; width:336px; height:280px; display:flex; align-items:center; justify-content:center; margin:0 auto; border:1px solid #ccc; color:#666;">AD BLOCK (336x280)</div>';
-
-    // Ad 1 (Antes do Parágrafo 1)
+    // Ad 1 (Após 2º Parágrafo - Melhor posição para viewability)
     $wp_customize->add_setting('winup_ad_1', array('default' => '', 'transport' => 'refresh'));
     $wp_customize->add_control('winup_ad_1', array(
-        'label' => __('Ad #1 (Antes do 1º Parágrafo)', 'winup-finance'),
+        'label' => __('Ad #1 (Após 2º Parágrafo)', 'winup-finance'),
         'section' => 'winup_ads_section',
         'type' => 'textarea',
-        'description' => 'Deixe vazio para mostrar o placeholder de teste.'
+        'description' => 'Melhor posição para viewability. Deixe vazio para placeholder.'
     ));
 
-    // Ad 2 (Após Parágrafo 3)
+    // Ad 2 (Após 5º Parágrafo)
     $wp_customize->add_setting('winup_ad_2', array('default' => '', 'transport' => 'refresh'));
     $wp_customize->add_control('winup_ad_2', array(
-        'label' => __('Ad #2 (Após 3º Parágrafo)', 'winup-finance'),
+        'label' => __('Ad #2 (Após 5º Parágrafo)', 'winup-finance'),
         'section' => 'winup_ads_section',
         'type' => 'textarea',
         'description' => 'Deixe vazio para mostrar o placeholder de teste.'
     ));
 
-    // Ad 3 (Manual - Fim do Post)
+    // Ad 3 (Fim do Post)
     $wp_customize->add_setting('winup_ad_4', array('default' => '', 'transport' => 'refresh'));
     $wp_customize->add_control('winup_ad_4', array(
         'label' => __('Ad #3 (Fim do Conteúdo)', 'winup-finance'),
@@ -162,11 +186,30 @@ function winup_customize_register($wp_customize)
         'type' => 'textarea',
         'description' => 'Este bloco aparece ao final do post.'
     ));
+
+    // Ad Sidebar (Desktop - 300x600 Skyscraper)
+    $wp_customize->add_setting('winup_ad_sidebar', array('default' => '', 'transport' => 'refresh'));
+    $wp_customize->add_control('winup_ad_sidebar', array(
+        'label' => __('Ad Sidebar (Desktop)', 'winup-finance'),
+        'section' => 'winup_ads_section',
+        'type' => 'textarea',
+        'description' => 'Formato recomendado: 300x600 (skyscraper). Aparece na sidebar em desktop.'
+    ));
+
+    // Ad Sticky Mobile (320x50 Anchor)
+    $wp_customize->add_setting('winup_ad_sticky_mobile', array('default' => '', 'transport' => 'refresh'));
+    $wp_customize->add_control('winup_ad_sticky_mobile', array(
+        'label' => __('Ad Sticky Mobile (Anchor)', 'winup-finance'),
+        'section' => 'winup_ads_section',
+        'type' => 'textarea',
+        'description' => 'Formato: 320x50. Fica fixo no bottom em dispositivos móveis.'
+    ));
 }
 add_action('customize_register', 'winup_customize_register');
 
 /**
- * Lógica de Inserção de Ads
+ * Lógica de Inserção de Ads - Otimizada para Arbitragem
+ * Posicionamentos: após 2º, 5º, e a cada 5 parágrafos em artigos longos
  */
 function winup_insert_ads($content)
 {
@@ -174,32 +217,42 @@ function winup_insert_ads($content)
         return $content;
     }
 
-    // Default Placeholder for Testing
-    $placeholder = '<div class="winup-ad-placeholder" style="margin: 2rem auto; width: 336px; max-width: 100%;"><div style="background:#f4f4f4; width:336px; height:280px; display:flex; align-items:center; justify-content:center; border:1px dashed #999; color:#555; font-weight:bold; font-family:sans-serif; max-width:100%;">TEST AD (336x280)</div><span style="display:block; text-align:center; font-size:10px; color:#999; margin-top:5px;">ADVERTISEMENT</span></div>';
+    // Placeholder Limpo (Sem bordas/fundo cinza)
+    $placeholder = '<div class="winup-ad-placeholder" style="margin: 1rem auto; text-align:center;"><div style="background:#eee; width:336px; height:280px; display:inline-flex; align-items:center; justify-content:center; color:#999; font-size:12px; max-width:100%;">ANÚNCIO AQUI</div></div>';
 
-    $ad_1 = get_theme_mod('winup_ad_1', '');
-    $ad_2 = get_theme_mod('winup_ad_2', '');
+    $ad_1 = winup_get_option('winup_ad_1', '');
+    $ad_2 = winup_get_option('winup_ad_2', '');
 
-    // Use placeholder if empty, for immediate user feedback based on request
-    if (empty($ad_1))
-        $ad_1 = $placeholder;
-    if (empty($ad_2))
-        $ad_2 = $placeholder;
-
-    // Logic: Prepend Ad 1
-    $final_content = '<div class="winup-ad-slot winup-ad-1">' . $ad_1 . '</div>';
+    // Use placeholder if empty
+    if (empty($ad_1)) $ad_1 = $placeholder;
+    if (empty($ad_2)) $ad_2 = $placeholder;
+    
+    // Divisor com texto (Antes do Ad)
+    $ad_divider = '<div class="ad-divider"><span>CONTINUA DEPOIS DA PUBLICIDADE</span></div>';
+    
+    // Divisor simples (Depois do Ad - apenas linha)
+    $ad_divider_bottom = '<div class="ad-divider-simple"></div>';
 
     $paragraphs = explode('</p>', $content);
     $p_count = 0;
+    $final_content = '';
 
     foreach ($paragraphs as $index => $paragraph) {
         if (trim($paragraph)) {
             $final_content .= $paragraph . '</p>';
             $p_count++;
 
-            // Ad 2 (After Paragraph 3)
-            if ($p_count === 3) {
-                $final_content .= '<div class="winup-ad-slot winup-ad-2">' . $ad_2 . '</div>';
+            // Ad 1 (Após 2º parágrafo - melhor viewability)
+            if ($p_count === 2) {
+                $final_content .= $ad_divider . '<div class="winup-ad-slot winup-ad-1">' . $ad_1 . '</div>' . $ad_divider_bottom;
+            }
+            // Ad 2 (Após 5º parágrafo)
+            elseif ($p_count === 5) {
+                $final_content .= $ad_divider . '<div class="winup-ad-slot winup-ad-2">' . $ad_2 . '</div>' . $ad_divider_bottom;
+            }
+            // Ads adicionais a cada 5 parágrafos para artigos longos (máximo 2 extras)
+            elseif ($p_count > 5 && $p_count <= 15 && ($p_count % 5 === 0)) {
+                $final_content .= $ad_divider . '<div class="winup-ad-slot winup-ad-extra">' . $placeholder . '</div>' . $ad_divider_bottom;
             }
         }
     }
@@ -209,7 +262,7 @@ function winup_insert_ads($content)
 add_filter('the_content', 'winup_insert_ads');
 
 /**
- * Related Content function (Simple)
+ * Related Content function - Cards Visuais com Thumbnails
  */
 function winup_related_posts()
 {
@@ -224,7 +277,7 @@ function winup_related_posts()
         $args = array(
             'category__in' => $cat_ids,
             'post__not_in' => array($post->ID),
-            'posts_per_page' => 3, // Minimalist list
+            'posts_per_page' => 3,
             'ignore_sticky_posts' => 1
         );
 
@@ -232,15 +285,97 @@ function winup_related_posts()
 
         if ($my_query->have_posts()) {
             echo '<div class="winup-related-posts">';
-            echo '<h3>' . __('Você pode gostar também:', 'winup-finance') . '</h3>';
-            echo '<ul>';
+            echo '<h3 class="related-posts-title">' . __('Você pode gostar também:', 'winup-finance') . '</h3>';
+            echo '<div class="related-posts-grid">';
             while ($my_query->have_posts()) {
                 $my_query->the_post();
-                echo '<li><a href="' . get_permalink() . '">' . get_the_title() . '</a></li>';
+                $cats = get_the_category();
+                $cat_name = $cats ? $cats[0]->name : '';
+                ?>
+                <article class="related-post-card">
+                    <a href="<?php the_permalink(); ?>" class="related-post-link">
+                        <?php if (has_post_thumbnail()): ?>
+                            <div class="related-post-thumb">
+                                <?php the_post_thumbnail('winup-grid'); ?>
+                            </div>
+                        <?php else: ?>
+                            <div class="related-post-thumb placeholder-thumb"></div>
+                        <?php endif; ?>
+                        <div class="related-post-content">
+                            <?php if ($cat_name): ?>
+                                <span class="related-post-cat"><?php echo esc_html($cat_name); ?></span>
+                            <?php endif; ?>
+                            <h4 class="related-post-title"><?php the_title(); ?></h4>
+                            <span class="related-post-date"><?php echo get_the_date('M j, Y'); ?></span>
+                        </div>
+                    </a>
+                </article>
+                <?php
             }
-            echo '</ul>';
+            echo '</div>';
             echo '</div>';
         }
-        wp_reset_query();
+        wp_reset_postdata();
     }
+}
+
+/**
+ * Calcula tempo de leitura baseado na contagem de palavras
+ * @param int $post_id ID do post (opcional)
+ * @return string Tempo formatado (ex: "5 min")
+ */
+function winup_reading_time($post_id = null)
+{
+    if (!$post_id) {
+        $post_id = get_the_ID();
+    }
+    
+    $content = get_post_field('post_content', $post_id);
+    $word_count = str_word_count(strip_tags($content));
+    $reading_time = ceil($word_count / 200); // 200 palavras por minuto
+    
+    if ($reading_time < 1) {
+        $reading_time = 1;
+    }
+    
+    return $reading_time . ' min';
+}
+
+/**
+ * Progress Bar de Leitura - Renderiza HTML e JS
+ */
+function winup_reading_progress_bar()
+{
+    if (!is_single()) {
+        return;
+    }
+    ?>
+    <div id="winup-progress-bar" class="reading-progress-bar">
+        <div class="reading-progress-fill"></div>
+    </div>
+    <script>
+    (function() {
+        var progressBar = document.querySelector('.reading-progress-fill');
+        var article = document.querySelector('.entry-content');
+        if (!progressBar || !article) return;
+        
+        function updateProgress() {
+            var articleTop = article.offsetTop;
+            var articleHeight = article.offsetHeight;
+            var windowHeight = window.innerHeight;
+            var scrollTop = window.scrollY || document.documentElement.scrollTop;
+            
+            var start = articleTop - windowHeight;
+            var end = articleTop + articleHeight - windowHeight;
+            var progress = ((scrollTop - start) / (end - start)) * 100;
+            
+            progress = Math.max(0, Math.min(100, progress));
+            progressBar.style.width = progress + '%';
+        }
+        
+        window.addEventListener('scroll', updateProgress);
+        updateProgress();
+    })();
+    </script>
+    <?php
 }
