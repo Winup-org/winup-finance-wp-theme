@@ -17,80 +17,111 @@
 
     <div id="page" class="site">
 
-        <!-- Ticker de Cotações - Moedas Globais -->
+        <!-- Currency Ticker - Real-time USD Rates -->
         <div class="ticker-bar">
             <div class="ticker-wrapper">
                 <div class="ticker-content" id="ticker-content">
+                    <!-- Loading placeholder - JS will populate with real data -->
                     <span class="ticker-item">
-                        <span class="ticker-label">🇺🇸 USD/BRL</span>
-                        <span class="ticker-value">R$ 5,12</span>
-                        <span class="ticker-change ticker-up">▲ 0,42%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇪🇺 EUR/BRL</span>
-                        <span class="ticker-value">R$ 5,58</span>
-                        <span class="ticker-change ticker-down">▼ 0,18%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇬🇧 GBP/BRL</span>
-                        <span class="ticker-value">R$ 6,45</span>
-                        <span class="ticker-change ticker-up">▲ 0,31%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇯🇵 JPY/BRL</span>
-                        <span class="ticker-value">R$ 0,034</span>
-                        <span class="ticker-change ticker-down">▼ 0,08%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇨🇭 CHF/BRL</span>
-                        <span class="ticker-value">R$ 5,82</span>
-                        <span class="ticker-change ticker-up">▲ 0,15%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇨🇦 CAD/BRL</span>
-                        <span class="ticker-value">R$ 3,78</span>
-                        <span class="ticker-change ticker-up">▲ 0,22%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇦🇺 AUD/BRL</span>
-                        <span class="ticker-value">R$ 3,35</span>
-                        <span class="ticker-change ticker-down">▼ 0,11%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇨🇳 CNY/BRL</span>
-                        <span class="ticker-value">R$ 0,71</span>
-                        <span class="ticker-change ticker-up">▲ 0,05%</span>
-                    </span>
-                    <!-- Duplicado para scroll infinito -->
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇺🇸 USD/BRL</span>
-                        <span class="ticker-value">R$ 5,12</span>
-                        <span class="ticker-change ticker-up">▲ 0,42%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇪🇺 EUR/BRL</span>
-                        <span class="ticker-value">R$ 5,58</span>
-                        <span class="ticker-change ticker-down">▼ 0,18%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇬🇧 GBP/BRL</span>
-                        <span class="ticker-value">R$ 6,45</span>
-                        <span class="ticker-change ticker-up">▲ 0,31%</span>
-                    </span>
-                    <span class="ticker-item">
-                        <span class="ticker-label">🇯🇵 JPY/BRL</span>
-                        <span class="ticker-value">R$ 0,034</span>
-                        <span class="ticker-change ticker-down">▼ 0,08%</span>
+                        <span class="ticker-label">Loading rates...</span>
                     </span>
                 </div>
             </div>
         </div>
+        
+        <script>
+        // Fetch real-time currency rates from Frankfurter API
+        (function() {
+            const currencies = [
+                { code: 'EUR', flag: '🇪🇺', name: 'EUR/USD' },
+                { code: 'GBP', flag: '🇬🇧', name: 'GBP/USD' },
+                { code: 'JPY', flag: '🇯🇵', name: 'USD/JPY' },
+                { code: 'CAD', flag: '🇨🇦', name: 'USD/CAD' },
+                { code: 'AUD', flag: '🇦🇺', name: 'AUD/USD' },
+                { code: 'CHF', flag: '🇨🇭', name: 'USD/CHF' }
+            ];
+            
+            async function fetchRates() {
+                try {
+                    // Get current rates
+                    const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CAD,AUD,CHF');
+                    const data = await response.json();
+                    
+                    // Get yesterday's rates for comparison
+                    const yesterday = new Date();
+                    yesterday.setDate(yesterday.getDate() - 1);
+                    const dateStr = yesterday.toISOString().split('T')[0];
+                    const responseYesterday = await fetch(`https://api.frankfurter.app/${dateStr}?from=USD&to=EUR,GBP,JPY,CAD,AUD,CHF`);
+                    const dataYesterday = await responseYesterday.json();
+                    
+                    updateTicker(data.rates, dataYesterday.rates);
+                } catch (error) {
+                    console.error('Error fetching rates:', error);
+                    // Fallback to static values
+                    document.getElementById('ticker-content').innerHTML = generateFallbackTicker();
+                }
+            }
+            
+            function updateTicker(current, previous) {
+                let html = '';
+                
+                currencies.forEach(curr => {
+                    const rate = current[curr.code];
+                    const prevRate = previous[curr.code];
+                    const change = ((rate - prevRate) / prevRate * 100).toFixed(2);
+                    const isUp = change >= 0;
+                    
+                    // Format display based on currency pair convention
+                    let displayRate;
+                    if (curr.code === 'JPY') {
+                        displayRate = (1 / rate).toFixed(2); // USD/JPY shows how many JPY per USD
+                    } else if (curr.code === 'EUR' || curr.code === 'GBP' || curr.code === 'AUD') {
+                        displayRate = (1 / rate).toFixed(4); // These are quoted as XXX/USD
+                    } else {
+                        displayRate = rate.toFixed(4); // USD/XXX
+                    }
+                    
+                    html += `
+                        <span class="ticker-item">
+                            <span class="ticker-label">${curr.flag} ${curr.name}</span>
+                            <span class="ticker-value">${displayRate}</span>
+                            <span class="ticker-change ${isUp ? 'ticker-up' : 'ticker-down'}">${isUp ? '▲' : '▼'} ${Math.abs(change)}%</span>
+                        </span>
+                    `;
+                });
+                
+                // Duplicate for infinite scroll effect
+                html += html;
+                
+                document.getElementById('ticker-content').innerHTML = html;
+            }
+            
+            function generateFallbackTicker() {
+                return `
+                    <span class="ticker-item"><span class="ticker-label">🇪🇺 EUR/USD</span><span class="ticker-value">1.0850</span><span class="ticker-change ticker-up">▲ 0.12%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇬🇧 GBP/USD</span><span class="ticker-value">1.2715</span><span class="ticker-change ticker-up">▲ 0.08%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇯🇵 USD/JPY</span><span class="ticker-value">148.25</span><span class="ticker-change ticker-down">▼ 0.15%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇨🇦 USD/CAD</span><span class="ticker-value">1.3425</span><span class="ticker-change ticker-up">▲ 0.05%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇦🇺 AUD/USD</span><span class="ticker-value">0.6580</span><span class="ticker-change ticker-down">▼ 0.22%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇨🇭 USD/CHF</span><span class="ticker-value">0.8645</span><span class="ticker-change ticker-up">▲ 0.10%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇪🇺 EUR/USD</span><span class="ticker-value">1.0850</span><span class="ticker-change ticker-up">▲ 0.12%</span></span>
+                    <span class="ticker-item"><span class="ticker-label">🇬🇧 GBP/USD</span><span class="ticker-value">1.2715</span><span class="ticker-change ticker-up">▲ 0.08%</span></span>
+                `;
+            }
+            
+            // Fetch on load
+            fetchRates();
+            
+            // Refresh every 5 minutes
+            setInterval(fetchRates, 5 * 60 * 1000);
+        })();
+        </script>
 
         <!-- Main Header -->
         <header id="masthead" class="site-header">
             <div class="container header-inner">
                 <!-- Mobile Menu Toggle -->
-                <button class="mobile-menu-toggle" aria-label="Abrir menu" aria-expanded="false">
+                <button class="mobile-menu-toggle" aria-label="Open menu" aria-expanded="false">
                     <span class="hamburger-icon">
                         <span></span>
                         <span></span>
@@ -117,7 +148,7 @@
             <div class="mobile-nav-drawer" id="mobile-nav">
                 <div class="mobile-nav-header">
                     <span class="mobile-nav-title"><?php bloginfo('name'); ?></span>
-                    <button class="mobile-nav-close" aria-label="Fechar menu">&times;</button>
+                    <button class="mobile-nav-close" aria-label="Close menu">&times;</button>
                 </div>
                 
                 <!-- Menu Principal -->
@@ -134,27 +165,16 @@
                     ?>
                 </nav>
                 
-                <!-- Links Úteis do Blog -->
-                <div class="mobile-nav-section">
-                    <span class="mobile-nav-section-title">Sobre</span>
-                    <ul class="mobile-nav-links">
-                        <li><a href="<?php echo home_url('/sobre'); ?>">Quem Somos</a></li>
-                        <li><a href="<?php echo home_url('/contato'); ?>">Contato</a></li>
-                        <li><a href="<?php echo home_url('/politica-de-privacidade'); ?>">Privacidade</a></li>
-                        <li><a href="<?php echo home_url('/termos-de-uso'); ?>">Termos de Uso</a></li>
-                    </ul>
-                </div>
-                
                 <!-- Newsletter no Menu Mobile -->
                 <div class="mobile-nav-newsletter">
                     <div class="newsletter-box">
                         <span class="newsletter-icon">📧</span>
                         <div class="newsletter-text">
-                            <strong>Newsletter Gratuita</strong>
-                            <small>Receba dicas de finanças no seu e-mail</small>
+                            <strong>Free Newsletter</strong>
+                            <small>Get finance tips in your inbox</small>
                         </div>
                     </div>
-                    <a href="#newsletter" class="mobile-newsletter-btn">Quero Receber</a>
+                    <a href="#newsletter" class="mobile-newsletter-btn">Subscribe Now</a>
                 </div>
             </div>
             <div class="mobile-nav-overlay" id="mobile-nav-overlay"></div>
@@ -174,12 +194,27 @@
                         );
                         ?>
                     </nav>
-                    <div class="nav-secondary-links">
-                        <a href="<?php echo home_url('/sobre'); ?>">Sobre</a>
-                        <a href="<?php echo home_url('/contato'); ?>">Contato</a>
-                    </div>
                 </div>
+
             </div>
+            
+            <!-- Reading Progress Bar (Mobile Only) - Fixo na base do header -->
+            <div id="winupProgressWrap" style="position:absolute;bottom:0;left:0;right:0;width:100%;height:3px;background:rgba(0,0,0,0.1);z-index:1001;display:none;overflow:hidden;pointer-events:none;">
+                <div id="winupProgressFill" style="display:block;position:absolute;top:0;left:0;height:100%;width:0%;background:#002244;transition:width 0.05s linear;"></div>
+            </div>
+            <script>
+            // Mostrar barra apenas no mobile
+            (function() {
+                var wrap = document.getElementById('winupProgressWrap');
+                function checkMobile() {
+                    if (wrap) {
+                        wrap.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+                    }
+                }
+                checkMobile();
+                window.addEventListener('resize', checkMobile);
+            })();
+            </script>
         </header>
 
         <script>

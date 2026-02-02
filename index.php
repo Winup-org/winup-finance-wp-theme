@@ -5,71 +5,77 @@ get_header();
 <div class="site-content-wrapper container">
     <main id="primary" class="site-main">
 
-        <?php if (have_posts()): ?>
-            <div class="posts-grid-wrapper">
+        <?php if (have_posts()) : ?>
+            
+            <div class="wsj-grid-wrapper">
+                
                 <?php
                 $post_count = 0;
-
-                while (have_posts()):
+                while (have_posts()) {
                     the_post();
                     $post_count++;
 
-                    // First post is Featured Hero
-                    if ($post_count === 1):
-                        ?>
-                        <article id="post-<?php the_ID(); ?>" <?php post_class('post-hero'); ?>>
-                            <?php if (has_post_thumbnail()): ?>
-                                <div class="post-thumbnail">
-                                    <a href="<?php the_permalink(); ?>">
-                                        <?php the_post_thumbnail('winup-hero'); ?>
-                                    </a>
-                                </div>
-                            <?php endif; ?>
+                    // 1. Destaque Principal (Hero)
+                    if ($post_count === 1) {
+                        get_template_part('template-parts/content', 'hero');
+                    }
+                    
+                    // 2. Abertura do Grid Secundário (Highlights)
+                    elseif ($post_count === 2) {
+                        echo '<div class="wsj-secondary-grid">';
+                        get_template_part('template-parts/content', 'highlight');
+                    }
 
-                            <div class="hero-content">
-                                <span class="cat-label"><?php the_category(' / '); ?></span>
-                                <?php the_title(sprintf('<h2 class="entry-title hero-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h2>'); ?>
-                                <div class="entry-excerpt">
-                                    <?php the_excerpt(); ?>
-                                </div>
-                                <div class="entry-meta">
-                                    <span class="posted-on"><?php echo get_the_date(); ?></span>
-                                    <span class="byline"> by <?php the_author(); ?></span>
-                                </div>
-                            </div>
-                        </article>
-                        <div class="secondary-grid"> <!-- Start Grid for subsequent posts -->
+                    // 3. Grid Secundário (Continuação)
+                    elseif ($post_count > 2 && $post_count <= 4) {
+                        get_template_part('template-parts/content', 'highlight');
+                        
+                        // Fechamento da Section Highlights
+                        if ($post_count === 4 || $post_count === $wp_query->post_count) {
+                            echo '</div><!-- .wsj-secondary-grid -->';
+                            echo '<div class="wsj-divider-fat"></div>';
+                        }
+                    }
 
-                        <?php else:  // Standard Grid Posts ?>
+                    // 4. Abertura da Lista de Notícias (Feed + Sidebar)
+                    elseif ($post_count === 5) {
+                        if ($post_count === 5 && $wp_query->post_count < 5) { /* Caso não tenha atingido 5 posts */ }
+                        
+                        echo '<div class="wsj-main-content-area">';
+                        echo '<div class="wsj-news-feed">';
+                        echo '<h4 class="section-label">Latest News</h4>';
+                        get_template_part('template-parts/content', 'list-item');
+                    }
 
-                            <article id="post-<?php the_ID(); ?>" <?php post_class('post-grid-item'); ?>>
-                                <?php if (has_post_thumbnail()): ?>
-                                    <div class="post-thumbnail">
-                                        <a href="<?php the_permalink(); ?>">
-                                            <?php the_post_thumbnail('winup-grid'); ?>
-                                        </a>
-                                    </div>
-                                <?php else: ?>
-                                    <!-- Fallback placeholder for grid consistency -->
-                                    <div class="post-thumbnail placeholder-thumb"></div>
-                                <?php endif; ?>
+                    // 5. Lista de Notícias (Continuação)
+                    else {
+                        get_template_part('template-parts/content', 'list-item');
+                    }
 
-                                <header class="entry-header">
-                                    <span
-                                        class="cat-label-small"><?php $cats = get_the_category();
-                                        echo $cats ? $cats[0]->name : ''; ?></span>
-                                    <?php the_title(sprintf('<h3 class="entry-title grid-title"><a href="%s" rel="bookmark">', esc_url(get_permalink())), '</a></h3>'); ?>
-                                    <div class="entry-meta-small">
-                                        <span class="posted-on"><?php echo get_the_date('M j, Y'); ?></span>
-                                    </div>
-                                </header>
-                            </article>
+                }
 
-                        <?php endif; ?>
+                // Fechamento das áreas se o loop terminar
+                if ($post_count >= 5) {
+                    echo '</div><!-- .wsj-news-feed -->';
+                    
+                    // Sidebar Área (Integrada no Grid)
+                    echo '<aside class="wsj-main-sidebar">';
+                    // Sidebar Customizada (Lista de Posts)
+                    echo '<aside class="wsj-main-sidebar">';
+                    get_template_part('template-parts/sidebar-posts-list');
+                    echo '</aside>';
+                    
+                    echo '</div><!-- .wsj-main-content-area -->';
+                }
+                
+                // Caso raríssimo de ter entre 2 e 4 posts apenas e não fechar a div corretamente acima
+                if ($post_count > 1 && $post_count < 4) {
+                     echo '</div><!-- .wsj-secondary-grid (fallback close) -->';
+                }
 
-                    <?php endwhile; ?>
-                </div> <!-- End secondary-grid -->
-            </div> <!-- End posts-grid-wrapper -->
+                ?>
+
+            </div> <!-- .wsj-grid-wrapper -->
 
             <?php
             the_posts_pagination(array(
@@ -78,8 +84,9 @@ get_header();
                 'next_text' => __('Next &rarr;', 'winup-finance'),
             ));
 
-        else:
-            // Empty state...
+        else :
+            // Empty state
+            echo '<p>No contents found.</p>';
         endif;
         ?>
     </main>

@@ -42,6 +42,62 @@ function winup_setup()
 add_action('after_setup_theme', 'winup_setup');
 
 /**
+ * Auto-create essential pages on theme activation
+ */
+function winup_create_pages() {
+    // Define pages to create
+    $pages = array(
+        array(
+            'title'    => 'Contact',
+            'slug'     => 'contact',
+            'template' => 'page-contact.php',
+            'content'  => '<!-- Add your contact form shortcode here (Contact Form 7, WPForms, etc.) -->'
+        ),
+        array(
+            'title'    => 'About Us',
+            'slug'     => 'about',
+            'template' => 'page-about.php',
+            'content'  => ''
+        ),
+        array(
+            'title'    => 'Privacy Policy',
+            'slug'     => 'privacy-policy',
+            'template' => 'page-privacy.php',
+            'content'  => ''
+        ),
+        array(
+            'title'    => 'Terms of Service',
+            'slug'     => 'terms-of-service',
+            'template' => 'page-terms.php',
+            'content'  => ''
+        )
+    );
+
+    foreach ($pages as $page) {
+        // Check if page already exists
+        $existing = get_page_by_path($page['slug']);
+        
+        if (!$existing) {
+            // Create the page
+            $page_id = wp_insert_post(array(
+                'post_title'   => $page['title'],
+                'post_name'    => $page['slug'],
+                'post_content' => $page['content'],
+                'post_status'  => 'publish',
+                'post_type'    => 'page',
+                'post_author'  => 1
+            ));
+
+            // Set page template
+            if ($page_id && !is_wp_error($page_id)) {
+                update_post_meta($page_id, '_wp_page_template', $page['template']);
+            }
+        }
+    }
+}
+add_action('after_switch_theme', 'winup_create_pages');
+
+/**
  * Enqueue Scripts e Styles
  */
 function winup_scripts()
@@ -156,7 +212,7 @@ function winup_customize_register($wp_customize)
 {
     // Seção de Ads
     $wp_customize->add_section('winup_ads_section', array(
-        'title' => __('Gerenciar Anúncios', 'winup-finance'),
+        'title' => __('Manage Ads', 'winup-finance'),
         'priority' => 30,
     ));
 
@@ -208,58 +264,9 @@ function winup_customize_register($wp_customize)
 add_action('customize_register', 'winup_customize_register');
 
 /**
- * Lógica de Inserção de Ads - Otimizada para Arbitragem
- * Posicionamentos: após 2º, 5º, e a cada 5 parágrafos em artigos longos
+ * In-Content Ads are managed by Ad Inserter plugin
+ * Theme handles only fixed positions: Sidebar, Mobile Sticky, Header/Footer scripts
  */
-function winup_insert_ads($content)
-{
-    if (is_admin() || !is_single()) {
-        return $content;
-    }
-
-    // Placeholder Limpo (Sem bordas/fundo cinza)
-    $placeholder = '<div class="winup-ad-placeholder" style="margin: 1rem auto; text-align:center;"><div style="background:#eee; width:336px; height:280px; display:inline-flex; align-items:center; justify-content:center; color:#999; font-size:12px; max-width:100%;">ANÚNCIO AQUI</div></div>';
-
-    $ad_1 = winup_get_option('winup_ad_1', '');
-    $ad_2 = winup_get_option('winup_ad_2', '');
-
-    // Use placeholder if empty
-    if (empty($ad_1)) $ad_1 = $placeholder;
-    if (empty($ad_2)) $ad_2 = $placeholder;
-    
-    // Divisor com texto (Antes do Ad)
-    $ad_divider = '<div class="ad-divider"><span>CONTINUA DEPOIS DA PUBLICIDADE</span></div>';
-    
-    // Divisor simples (Depois do Ad - apenas linha)
-    $ad_divider_bottom = '<div class="ad-divider-simple"></div>';
-
-    $paragraphs = explode('</p>', $content);
-    $p_count = 0;
-    $final_content = '';
-
-    foreach ($paragraphs as $index => $paragraph) {
-        if (trim($paragraph)) {
-            $final_content .= $paragraph . '</p>';
-            $p_count++;
-
-            // Ad 1 (Após 2º parágrafo - melhor viewability)
-            if ($p_count === 2) {
-                $final_content .= $ad_divider . '<div class="winup-ad-slot winup-ad-1">' . $ad_1 . '</div>' . $ad_divider_bottom;
-            }
-            // Ad 2 (Após 5º parágrafo)
-            elseif ($p_count === 5) {
-                $final_content .= $ad_divider . '<div class="winup-ad-slot winup-ad-2">' . $ad_2 . '</div>' . $ad_divider_bottom;
-            }
-            // Ads adicionais a cada 5 parágrafos para artigos longos (máximo 2 extras)
-            elseif ($p_count > 5 && $p_count <= 15 && ($p_count % 5 === 0)) {
-                $final_content .= $ad_divider . '<div class="winup-ad-slot winup-ad-extra">' . $placeholder . '</div>' . $ad_divider_bottom;
-            }
-        }
-    }
-
-    return $final_content;
-}
-add_filter('the_content', 'winup_insert_ads');
 
 /**
  * Related Content function - Cards Visuais com Thumbnails
@@ -277,7 +284,7 @@ function winup_related_posts()
         $args = array(
             'category__in' => $cat_ids,
             'post__not_in' => array($post->ID),
-            'posts_per_page' => 3,
+            'posts_per_page' => 4,
             'ignore_sticky_posts' => 1
         );
 
@@ -285,7 +292,7 @@ function winup_related_posts()
 
         if ($my_query->have_posts()) {
             echo '<div class="winup-related-posts">';
-            echo '<h3 class="related-posts-title">' . __('Você pode gostar também:', 'winup-finance') . '</h3>';
+            echo '<h3 class="related-posts-title">' . __('You May Also Like:', 'winup-finance') . '</h3>';
             echo '<div class="related-posts-grid">';
             while ($my_query->have_posts()) {
                 $my_query->the_post();

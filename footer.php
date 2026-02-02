@@ -1,87 +1,91 @@
-<footer id="colophon" class="site-footer">
-    <div class="container footer-grid">
+<?php
+/**
+ * The template for displaying the footer (Minimal Layout)
+ *
+ * @package Winup_Finance
+ */
+?>
 
-        <!-- Column 1: Brand & About -->
-        <div class="footer-col brand-col">
+<footer id="colophon" class="minimal-footer">
+    <div class="container footer-stack">
+        
+        <!-- Logo Section -->
+        <div class="minimal-footer-brand">
             <a href="<?php echo esc_url(home_url('/')); ?>" rel="home" class="footer-logo-link">
-                <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo_uscursosesc_blackbg.png" 
-                     alt="<?php bloginfo('name'); ?>" 
-                     class="footer-logo">
+                <?php bloginfo('name'); ?>
             </a>
-            <p class="footer-desc"><?php bloginfo('description'); ?></p>
-            <div class="social-links-footer">
-                <!-- Demo Socials -->
-                <a href="#">Twitter</a>
-                <a href="#">LinkedIn</a>
-                <a href="#">RSS</a>
-            </div>
         </div>
 
-        <!-- Column 2: Navigation -->
-        <div class="footer-col nav-col">
-            <h3 class="footer-title">Sections</h3>
+        <!-- Disclaimer Section -->
+        <div class="minimal-disclaimer">
+            <h5 class="disclaimer-label">Disclaimer</h5>
+            <p>
+                The information on <?php bloginfo('name'); ?> (<?php echo $_SERVER['HTTP_HOST']; ?>) is provided for informational purposes only. While we strive for accuracy, we do not guarantee the reliability of any data, including third-party data such as job offers or loan and credit card offers. We recommend that you check the information before making any decisions. <?php bloginfo('name'); ?> uses Google AdSense for personalized advertising. We do not endorse the products or services promoted. Use of the site implies acceptance of our terms and conditions and privacy policy.
+            </p>
+        </div>
+
+        <!-- Links Section (Dynamic) -->
+        <div class="minimal-footer-nav">
             <?php
-            wp_nav_menu(array(
-                'theme_location' => 'primary',
-                'container' => false,
-                'depth' => 1,
-                'fallback_cb' => false,
-            ));
+            // Dynamic footer links - synced with auto-created pages
+            $footer_pages = array(
+                'about'            => 'About Us',
+                'contact'          => 'Contact',
+                'privacy-policy'   => 'Privacy Policy',
+                'terms-of-service' => 'Terms of Service'
+            );
+            
+            foreach ($footer_pages as $slug => $title) {
+                $page = get_page_by_path($slug);
+                if ($page) {
+                    echo '<a href="' . get_permalink($page->ID) . '">' . esc_html($title) . '</a>';
+                }
+            }
             ?>
         </div>
 
-        <!-- Column 3: Legal / Disclaimer -->
-        <div class="footer-col legal-col">
-            <h3 class="footer-title">Legal & Trust</h3>
-            <p class="disclaimer-text">
-                <strong>Disclaimer:</strong> Content on <?php bloginfo('name'); ?> is for informational purposes only
-                and does not constitute financial advice. Always consult a certified professional before making
-                financial decisions.
-            </p>
-            <div class="legal-links">
-                <a href="<?php echo home_url('/privacy-policy'); ?>">Privacy Policy</a>
-                <a href="<?php echo home_url('/terms-of-service'); ?>">Terms of Service</a>
-                <a href="<?php echo home_url('/editorial-guidelines'); ?>">Editorial Guidelines</a>
-            </div>
-        </div>
-
-    </div>
-
-    <!-- Trust Badges (Credibilidade) -->
-    <div class="container trust-badges-container">
-        <div class="trust-badges">
-            <div class="trust-badge trust-badge--secure">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-                    <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-                </svg>
-                <span>SSL Secure</span>
-            </div>
-            <div class="trust-badge trust-badge--verified">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path>
-                    <polyline points="22 4 12 14.01 9 11.01"></polyline>
-                </svg>
-                <span>Verified Content</span>
-            </div>
-            <div class="trust-badge">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                    <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path>
-                    <circle cx="12" cy="7" r="4"></circle>
-                </svg>
-                <span>Expert Reviewed</span>
-            </div>
+        <!-- Copyright -->
+        <div class="minimal-copyright">
+            &copy; <?php echo date('Y'); ?> <?php bloginfo('name'); ?>. All rights reserved.
         </div>
     </div>
+</footer>
 
-    <div class="container site-bottom">
-        <span class="copyright">&copy; <?php echo date('Y'); ?> <?php bloginfo('name'); ?>. All rights
-            reserved.</span>
-    </div>
-</footer><!-- #colophon -->
 </div><!-- #page -->
+
+<script>
+// Reading Progress Bar Script - Com curva psicológica de retenção
+// A barra avança mais rápido no início e desacelera no final
+document.addEventListener('DOMContentLoaded', function() {
+    var progressBar = document.getElementById('winupProgressFill');
+    if (!progressBar) return;
+    
+    // Função de easing: faz a barra parecer avançar mais rápido no início
+    // Expoente < 1 = rápido no início, lento no fim
+    function easeProgress(realPercent) {
+        // Usando função de potência com expoente 0.55
+        // Exemplos de mapeamento:
+        // 10% real → ~24% visual
+        // 25% real → ~42% visual
+        // 50% real → ~63% visual
+        // 75% real → ~82% visual
+        // 100% real → 100% visual
+        return 100 * Math.pow(realPercent / 100, 0.55);
+    }
+    
+    window.addEventListener('scroll', function() {
+        var scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+        var docHeight = document.documentElement.scrollHeight - document.documentElement.clientHeight;
+        var realPercent = docHeight > 0 ? (scrollTop / docHeight) * 100 : 0;
+        
+        // Aplicar a curva psicológica
+        var visualPercent = easeProgress(realPercent);
+        
+        progressBar.style.width = visualPercent + '%';
+    });
+});
+</script>
 
 <?php wp_footer(); ?>
 </body>
-
 </html>

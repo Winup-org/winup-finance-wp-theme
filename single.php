@@ -34,12 +34,12 @@ if (function_exists('winup_reading_progress_bar')) {
                     
                     <!-- 4. Escritor (Source Serif 4 Italic) -->
                     <div class="wsj-byline">
-                        <span class="wsj-author">Por <?php the_author(); ?></span>
+                        <span class="wsj-author">By <?php the_author(); ?></span>
                     </div>
                     
                     <!-- 5. Data do Post (Source Serif 4 Regular) -->
                     <div class="wsj-date">
-                        <?php echo get_the_date('j \d\e F, Y'); ?> às <?php echo get_the_time('H:i'); ?>
+                        <?php echo get_the_date('F j, Y'); ?> at <?php echo get_the_time('g:i A'); ?>
                     </div>
                 </header>
 
@@ -51,26 +51,8 @@ if (function_exists('winup_reading_progress_bar')) {
                 </div>
 
                 <?php
-                // Manual Ad Slot #4 (Fim do Post)
-                $ad_4 = winup_get_option('winup_ad_4', '');
-                if (!empty($ad_4)): ?>
-                    <div class="winup-ad-slot winup-ad-4">
-                        <?php echo $ad_4; ?>
-                    </div>
-                <?php endif; ?>
-
-                <!-- Author Box (E-E-A-T) -->
-                <div class="author-box">
-                    <div class="author-bio-avatar">
-                        <?php echo get_avatar(get_the_author_meta('ID'), 80); ?>
-                    </div>
-                    <div class="author-bio-content">
-                        <h4>About <?php the_author(); ?></h4>
-                        <p><?php the_author_meta('description'); ?></p>
-                        <a href="<?php echo get_author_posts_url(get_the_author_meta('ID')); ?>">View all posts
-                            &rarr;</a>
-                    </div>
-                </div>
+                // Note: In-content ads (end of post, between paragraphs) are managed by Ad Inserter plugin
+                ?>
 
             </article>
 
@@ -101,12 +83,23 @@ if (function_exists('winup_reading_progress_bar')) {
                 </div>
             </nav>
 
-            <?php
-            // Related Content
-            if (function_exists('winup_related_posts')) {
-                winup_related_posts();
-            }
-            ?>
+            <!-- Newsletter Box (Mobile Only) -->
+            <div class="mobile-newsletter-section">
+                <div class="sidebar-newsletter-box" id="newsletter-mobile">
+                    <div class="newsletter-header">
+                        <span class="newsletter-emoji">📧</span>
+                        <h3 class="newsletter-title">Free Newsletter</h3>
+                    </div>
+                    <p class="newsletter-desc">Get the best personal finance tips delivered to your inbox.</p>
+                    <form class="newsletter-form" action="#" method="post">
+                        <input type="email" name="email" placeholder="Your email address" required>
+                        <button type="submit">Subscribe</button>
+                    </form>
+                    <small class="newsletter-privacy">🔒 Your data is safe. No spam.</small>
+                </div>
+            </div>
+
+
 
             <?php
         endwhile; // End of the loop.
@@ -117,51 +110,53 @@ if (function_exists('winup_reading_progress_bar')) {
     <!-- Sidebar (Desktop Only) -->
     <aside id="secondary" class="single-sidebar">
         
-        <!-- Newsletter Box -->
+        <?php
+        // Ad Sidebar (Desktop) - Only show if enabled
+        $ad_sidebar_enabled = get_option('winup_ad_sidebar_enabled', '0');
+        $ad_sidebar = winup_get_option('winup_ad_sidebar', '');
+        if ($ad_sidebar_enabled === '1' && !empty($ad_sidebar)): ?>
+            <div class="winup-ad-slot winup-ad-sidebar">
+                <?php echo $ad_sidebar; ?>
+            </div>
+        <?php endif; ?>
+
+        <!-- Newsletter Box - After advertising -->
         <div class="sidebar-newsletter-box" id="newsletter">
             <div class="newsletter-header">
                 <span class="newsletter-emoji">📧</span>
-                <h3 class="newsletter-title">Newsletter Gratuita</h3>
+                <h3 class="newsletter-title">Free Newsletter</h3>
             </div>
-            <p class="newsletter-desc">Receba as melhores dicas de finanças pessoais diretamente no seu e-mail.</p>
+            <p class="newsletter-desc">Get the best personal finance tips delivered to your inbox.</p>
             <form class="newsletter-form" action="#" method="post">
-                <input type="email" name="email" placeholder="Seu melhor e-mail" required>
-                <button type="submit">Inscrever-se</button>
+                <input type="email" name="email" placeholder="Your email address" required>
+                <button type="submit">Subscribe</button>
             </form>
-            <small class="newsletter-privacy">🔒 Seus dados estão seguros. Sem spam.</small>
+            <small class="newsletter-privacy">🔒 Your data is safe. No spam.</small>
         </div>
-
-        <?php
-        // Ad Sidebar (Desktop)
-        $ad_sidebar = winup_get_option('winup_ad_sidebar', '');
-        if (!empty($ad_sidebar)): ?>
-            <div class="winup-ad-slot winup-ad-sidebar sticky-sidebar-ad">
-                <?php echo $ad_sidebar; ?>
-            </div>
-        <?php else: ?>
-            <div class="winup-ad-slot winup-ad-sidebar sticky-sidebar-ad">
-                <div style="background:#f4f4f4; width:300px; height:600px; display:flex; align-items:center; justify-content:center; border:1px dashed #999; color:#555; font-weight:bold; font-family:sans-serif;">
-                    SIDEBAR AD (300x600)
-                </div>
-            </div>
-        <?php endif; ?>
     </aside>
 
 </div><!-- .site-content-wrapper -->
 
+<!-- Related Posts - Full Width -->
+<div class="container related-posts-full-width">
+    <?php
+    // Related Content - 4 posts em grid
+    if (function_exists('winup_related_posts')) {
+        winup_related_posts();
+    }
+    ?>
+</div>
+
 <?php
-// Sticky Anchor Ad (Mobile Only)
+// Sticky Anchor Ad (Mobile Only) - Only show if enabled
+$ad_sticky_mobile_enabled = get_option('winup_ad_sticky_mobile_enabled', '0');
 $ad_sticky_mobile = winup_get_option('winup_ad_sticky_mobile', '');
+
+if ($ad_sticky_mobile_enabled === '1' && !empty($ad_sticky_mobile)):
 ?>
 <div class="winup-sticky-anchor-ad">
-    <?php if (!empty($ad_sticky_mobile)): ?>
-        <?php echo $ad_sticky_mobile; ?>
-    <?php else: ?>
-        <div class="sticky-ad-placeholder">
-            <span>MOBILE AD (320x50)</span>
-        </div>
-    <?php endif; ?>
-    <button class="sticky-ad-close" aria-label="Fechar anúncio">&times;</button>
+    <?php echo $ad_sticky_mobile; ?>
+    <button class="sticky-ad-close" aria-label="Close ad">&times;</button>
 </div>
 <script>
 document.addEventListener('DOMContentLoaded', function() {
@@ -174,6 +169,7 @@ document.addEventListener('DOMContentLoaded', function() {
     }
 });
 </script>
+<?php endif; ?>
 
 <?php
 get_footer();
