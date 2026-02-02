@@ -8,7 +8,9 @@
     <link rel="profile" href="https://gmpg.org/xfn/11">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@300;400;600&family=Source+Serif+4:ital,wght@0,400;1,400&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Source+Sans+3:wght@300;400;600&family=Source+Serif+4:ital,wght@0,400;1,400&display=swap"
+        rel="stylesheet">
     <?php wp_head(); ?>
 </head>
 
@@ -28,76 +30,76 @@
                 </div>
             </div>
         </div>
-        
+
         <script>
-        // Fetch real-time currency rates from Frankfurter API
-        (function() {
-            const currencies = [
-                { code: 'EUR', flag: '🇪🇺', name: 'EUR/USD' },
-                { code: 'GBP', flag: '🇬🇧', name: 'GBP/USD' },
-                { code: 'JPY', flag: '🇯🇵', name: 'USD/JPY' },
-                { code: 'CAD', flag: '🇨🇦', name: 'USD/CAD' },
-                { code: 'AUD', flag: '🇦🇺', name: 'AUD/USD' },
-                { code: 'CHF', flag: '🇨🇭', name: 'USD/CHF' }
-            ];
-            
-            async function fetchRates() {
-                try {
-                    // Get current rates
-                    const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CAD,AUD,CHF');
-                    const data = await response.json();
-                    
-                    // Get yesterday's rates for comparison
-                    const yesterday = new Date();
-                    yesterday.setDate(yesterday.getDate() - 1);
-                    const dateStr = yesterday.toISOString().split('T')[0];
-                    const responseYesterday = await fetch(`https://api.frankfurter.app/${dateStr}?from=USD&to=EUR,GBP,JPY,CAD,AUD,CHF`);
-                    const dataYesterday = await responseYesterday.json();
-                    
-                    updateTicker(data.rates, dataYesterday.rates);
-                } catch (error) {
-                    console.error('Error fetching rates:', error);
-                    // Fallback to static values
-                    document.getElementById('ticker-content').innerHTML = generateFallbackTicker();
-                }
-            }
-            
-            function updateTicker(current, previous) {
-                let html = '';
-                
-                currencies.forEach(curr => {
-                    const rate = current[curr.code];
-                    const prevRate = previous[curr.code];
-                    const change = ((rate - prevRate) / prevRate * 100).toFixed(2);
-                    const isUp = change >= 0;
-                    
-                    // Format display based on currency pair convention
-                    let displayRate;
-                    if (curr.code === 'JPY') {
-                        displayRate = (1 / rate).toFixed(2); // USD/JPY shows how many JPY per USD
-                    } else if (curr.code === 'EUR' || curr.code === 'GBP' || curr.code === 'AUD') {
-                        displayRate = (1 / rate).toFixed(4); // These are quoted as XXX/USD
-                    } else {
-                        displayRate = rate.toFixed(4); // USD/XXX
+            // Fetch real-time currency rates from Frankfurter API
+            (function () {
+                const currencies = [
+                    { code: 'EUR', flag: '🇪🇺', name: 'EUR/USD' },
+                    { code: 'GBP', flag: '🇬🇧', name: 'GBP/USD' },
+                    { code: 'JPY', flag: '🇯🇵', name: 'USD/JPY' },
+                    { code: 'CAD', flag: '🇨🇦', name: 'USD/CAD' },
+                    { code: 'AUD', flag: '🇦🇺', name: 'AUD/USD' },
+                    { code: 'CHF', flag: '🇨🇭', name: 'USD/CHF' }
+                ];
+
+                async function fetchRates() {
+                    try {
+                        // Get current rates
+                        const response = await fetch('https://api.frankfurter.app/latest?from=USD&to=EUR,GBP,JPY,CAD,AUD,CHF');
+                        const data = await response.json();
+
+                        // Get yesterday's rates for comparison
+                        const yesterday = new Date();
+                        yesterday.setDate(yesterday.getDate() - 1);
+                        const dateStr = yesterday.toISOString().split('T')[0];
+                        const responseYesterday = await fetch(`https://api.frankfurter.app/${dateStr}?from=USD&to=EUR,GBP,JPY,CAD,AUD,CHF`);
+                        const dataYesterday = await responseYesterday.json();
+
+                        updateTicker(data.rates, dataYesterday.rates);
+                    } catch (error) {
+                        console.error('Error fetching rates:', error);
+                        // Fallback to static values
+                        document.getElementById('ticker-content').innerHTML = generateFallbackTicker();
                     }
-                    
-                    html += `
+                }
+
+                function updateTicker(current, previous) {
+                    let html = '';
+
+                    currencies.forEach(curr => {
+                        const rate = current[curr.code];
+                        const prevRate = previous[curr.code];
+                        const change = ((rate - prevRate) / prevRate * 100).toFixed(2);
+                        const isUp = change >= 0;
+
+                        // Format display based on currency pair convention
+                        let displayRate;
+                        if (curr.code === 'JPY') {
+                            displayRate = (1 / rate).toFixed(2); // USD/JPY shows how many JPY per USD
+                        } else if (curr.code === 'EUR' || curr.code === 'GBP' || curr.code === 'AUD') {
+                            displayRate = (1 / rate).toFixed(4); // These are quoted as XXX/USD
+                        } else {
+                            displayRate = rate.toFixed(4); // USD/XXX
+                        }
+
+                        html += `
                         <span class="ticker-item">
                             <span class="ticker-label">${curr.flag} ${curr.name}</span>
                             <span class="ticker-value">${displayRate}</span>
                             <span class="ticker-change ${isUp ? 'ticker-up' : 'ticker-down'}">${isUp ? '▲' : '▼'} ${Math.abs(change)}%</span>
                         </span>
                     `;
-                });
-                
-                // Duplicate for infinite scroll effect
-                html += html;
-                
-                document.getElementById('ticker-content').innerHTML = html;
-            }
-            
-            function generateFallbackTicker() {
-                return `
+                    });
+
+                    // Duplicate for infinite scroll effect
+                    html += html;
+
+                    document.getElementById('ticker-content').innerHTML = html;
+                }
+
+                function generateFallbackTicker() {
+                    return `
                     <span class="ticker-item"><span class="ticker-label">🇪🇺 EUR/USD</span><span class="ticker-value">1.0850</span><span class="ticker-change ticker-up">▲ 0.12%</span></span>
                     <span class="ticker-item"><span class="ticker-label">🇬🇧 GBP/USD</span><span class="ticker-value">1.2715</span><span class="ticker-change ticker-up">▲ 0.08%</span></span>
                     <span class="ticker-item"><span class="ticker-label">🇯🇵 USD/JPY</span><span class="ticker-value">148.25</span><span class="ticker-change ticker-down">▼ 0.15%</span></span>
@@ -107,14 +109,14 @@
                     <span class="ticker-item"><span class="ticker-label">🇪🇺 EUR/USD</span><span class="ticker-value">1.0850</span><span class="ticker-change ticker-up">▲ 0.12%</span></span>
                     <span class="ticker-item"><span class="ticker-label">🇬🇧 GBP/USD</span><span class="ticker-value">1.2715</span><span class="ticker-change ticker-up">▲ 0.08%</span></span>
                 `;
-            }
-            
-            // Fetch on load
-            fetchRates();
-            
-            // Refresh every 5 minutes
-            setInterval(fetchRates, 5 * 60 * 1000);
-        })();
+                }
+
+                // Fetch on load
+                fetchRates();
+
+                // Refresh every 5 minutes
+                setInterval(fetchRates, 5 * 60 * 1000);
+            })();
         </script>
 
         <!-- Main Header -->
@@ -128,18 +130,16 @@
                         <span></span>
                     </span>
                 </button>
-                
+
                 <div class="site-branding">
                     <a href="<?php echo esc_url(home_url('/')); ?>" rel="home" class="site-logo-link">
-                        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo_uscursosesc.png" 
-                             alt="<?php bloginfo('name'); ?>" 
-                             class="site-logo site-logo--mobile">
-                        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo_uscursosesc_desktop.png" 
-                             alt="<?php bloginfo('name'); ?>" 
-                             class="site-logo site-logo--desktop">
+                        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo_uscursosesc.png"
+                            alt="<?php bloginfo('name'); ?>" class="site-logo site-logo--mobile">
+                        <img src="<?php echo get_template_directory_uri(); ?>/assets/images/logo_uscursosesc_desktop.png"
+                            alt="<?php bloginfo('name'); ?>" class="site-logo site-logo--desktop">
                     </a>
                 </div>
-                
+
                 <!-- Spacer para alinhar o título -->
                 <div class="header-spacer"></div>
             </div>
@@ -150,7 +150,27 @@
                     <span class="mobile-nav-title"><?php bloginfo('name'); ?></span>
                     <button class="mobile-nav-close" aria-label="Close menu">&times;</button>
                 </div>
-                
+
+                <!-- Search Mobile (Inside Drawer) -->
+                <div class="mobile-search-box">
+                    <form role="search" method="get" class="mobile-search-form"
+                        action="<?php echo esc_url(home_url('/')); ?>">
+                        <input type="search" class="mobile-search-field" placeholder="Search..."
+                            value="<?php echo get_search_query(); ?>" name="s" />
+                        <button type="submit" class="mobile-search-submit" aria-label="Search">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none"
+                                xmlns="http://www.w3.org/2000/svg">
+                                <path
+                                    d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+                                    stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                    stroke-linejoin="round" />
+                                <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"
+                                    stroke-linecap="round" stroke-linejoin="round" />
+                            </svg>
+                        </button>
+                    </form>
+                </div>
+
                 <!-- Menu Principal -->
                 <nav class="mobile-navigation">
                     <?php
@@ -164,7 +184,7 @@
                     );
                     ?>
                 </nav>
-                
+
                 <!-- Newsletter no Menu Mobile -->
                 <div class="mobile-nav-newsletter">
                     <div class="newsletter-box">
@@ -194,63 +214,87 @@
                         );
                         ?>
                     </nav>
-                </div>
 
+                    <div class="header-tools">
+                        <!-- Desktop Inline Search -->
+                        <div class="desktop-search-wrapper">
+                            <form role="search" method="get" class="desktop-search-form"
+                                action="<?php echo esc_url(home_url('/')); ?>">
+                                <input type="search" class="desktop-search-field" placeholder="Search..."
+                                    value="<?php echo get_search_query(); ?>" name="s" autocomplete="off" />
+                                <button type="submit" class="desktop-search-submit" aria-label="Search">
+                                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none"
+                                        xmlns="http://www.w3.org/2000/svg">
+                                        <path
+                                            d="M11 19C15.4183 19 19 15.4183 19 11C19 6.58172 15.4183 3 11 3C6.58172 3 3 6.58172 3 11C3 15.4183 6.58172 19 11 19Z"
+                                            stroke="currentColor" stroke-width="2" stroke-linecap="round"
+                                            stroke-linejoin="round" />
+                                        <path d="M21 21L16.65 16.65" stroke="currentColor" stroke-width="2"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                    </svg>
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
             </div>
-            
+
             <!-- Reading Progress Bar (Mobile Only) - Fixo na base do header -->
-            <div id="winupProgressWrap" style="position:absolute;bottom:0;left:0;right:0;width:100%;height:3px;background:rgba(0,0,0,0.1);z-index:1001;display:none;overflow:hidden;pointer-events:none;">
-                <div id="winupProgressFill" style="display:block;position:absolute;top:0;left:0;height:100%;width:0%;background:#002244;transition:width 0.05s linear;"></div>
+            <div id="winupProgressWrap"
+                style="position:absolute;bottom:0;left:0;right:0;width:100%;height:3px;background:rgba(0,0,0,0.1);z-index:1001;display:none;overflow:hidden;pointer-events:none;">
+                <div id="winupProgressFill"
+                    style="display:block;position:absolute;top:0;left:0;height:100%;width:0%;background:#002244;transition:width 0.05s linear;">
+                </div>
             </div>
             <script>
-            // Mostrar barra apenas no mobile
-            (function() {
-                var wrap = document.getElementById('winupProgressWrap');
-                function checkMobile() {
-                    if (wrap) {
-                        wrap.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+                // Mostrar barra apenas no mobile
+                (function () {
+                    var wrap = document.getElementById('winupProgressWrap');
+                    function checkMobile() {
+                        if (wrap) {
+                            wrap.style.display = window.innerWidth <= 768 ? 'block' : 'none';
+                        }
                     }
-                }
-                checkMobile();
-                window.addEventListener('resize', checkMobile);
-            })();
+                    checkMobile();
+                    window.addEventListener('resize', checkMobile);
+                })();
             </script>
         </header>
 
         <script>
-        (function() {
-            var toggle = document.querySelector('.mobile-menu-toggle');
-            var drawer = document.getElementById('mobile-nav');
-            var overlay = document.getElementById('mobile-nav-overlay');
-            var closeBtn = document.querySelector('.mobile-nav-close');
-            var body = document.body;
-            
-            function openMenu() {
-                drawer.classList.add('is-open');
-                overlay.classList.add('is-visible');
-                body.classList.add('menu-open');
-                toggle.setAttribute('aria-expanded', 'true');
-            }
-            
-            function closeMenu() {
-                drawer.classList.remove('is-open');
-                overlay.classList.remove('is-visible');
-                body.classList.remove('menu-open');
-                toggle.setAttribute('aria-expanded', 'false');
-            }
-            
-            if (toggle) toggle.addEventListener('click', openMenu);
-            if (closeBtn) closeBtn.addEventListener('click', closeMenu);
-            if (overlay) overlay.addEventListener('click', closeMenu);
-            
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') closeMenu();
-            });
-            
-            // Fechar menu ao clicar em links
-            var menuLinks = drawer.querySelectorAll('a');
-            menuLinks.forEach(function(link) {
-                link.addEventListener('click', closeMenu);
-            });
-        })();
+            (function () {
+                var toggle = document.querySelector('.mobile-menu-toggle');
+                var drawer = document.getElementById('mobile-nav');
+                var overlay = document.getElementById('mobile-nav-overlay');
+                var closeBtn = document.querySelector('.mobile-nav-close');
+                var body = document.body;
+
+                function openMenu() {
+                    drawer.classList.add('is-open');
+                    overlay.classList.add('is-visible');
+                    body.classList.add('menu-open');
+                    toggle.setAttribute('aria-expanded', 'true');
+                }
+
+                function closeMenu() {
+                    drawer.classList.remove('is-open');
+                    overlay.classList.remove('is-visible');
+                    body.classList.remove('menu-open');
+                    toggle.setAttribute('aria-expanded', 'false');
+                }
+
+                if (toggle) toggle.addEventListener('click', openMenu);
+                if (closeBtn) closeBtn.addEventListener('click', closeMenu);
+                if (overlay) overlay.addEventListener('click', closeMenu);
+
+                document.addEventListener('keydown', function (e) {
+                    if (e.key === 'Escape') closeMenu();
+                });
+
+                // Fechar menu ao clicar em links
+                var menuLinks = drawer.querySelectorAll('a');
+                menuLinks.forEach(function (link) {
+                    link.addEventListener('click', closeMenu);
+                });
+            })();
         </script>

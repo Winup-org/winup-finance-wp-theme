@@ -44,48 +44,49 @@ add_action('after_setup_theme', 'winup_setup');
 /**
  * Auto-create essential pages on theme activation
  */
-function winup_create_pages() {
+function winup_create_pages()
+{
     // Define pages to create
     $pages = array(
         array(
-            'title'    => 'Contact',
-            'slug'     => 'contact',
+            'title' => 'Contact',
+            'slug' => 'contact',
             'template' => 'page-contact.php',
-            'content'  => '<!-- Add your contact form shortcode here (Contact Form 7, WPForms, etc.) -->'
+            'content' => '<!-- Add your contact form shortcode here (Contact Form 7, WPForms, etc.) -->'
         ),
         array(
-            'title'    => 'About Us',
-            'slug'     => 'about',
+            'title' => 'About Us',
+            'slug' => 'about',
             'template' => 'page-about.php',
-            'content'  => ''
+            'content' => ''
         ),
         array(
-            'title'    => 'Privacy Policy',
-            'slug'     => 'privacy-policy',
+            'title' => 'Privacy Policy',
+            'slug' => 'privacy-policy',
             'template' => 'page-privacy.php',
-            'content'  => ''
+            'content' => ''
         ),
         array(
-            'title'    => 'Terms of Service',
-            'slug'     => 'terms-of-service',
+            'title' => 'Terms of Service',
+            'slug' => 'terms-of-service',
             'template' => 'page-terms.php',
-            'content'  => ''
+            'content' => ''
         )
     );
 
     foreach ($pages as $page) {
         // Check if page already exists
         $existing = get_page_by_path($page['slug']);
-        
+
         if (!$existing) {
             // Create the page
             $page_id = wp_insert_post(array(
-                'post_title'   => $page['title'],
-                'post_name'    => $page['slug'],
+                'post_title' => $page['title'],
+                'post_name' => $page['slug'],
                 'post_content' => $page['content'],
-                'post_status'  => 'publish',
-                'post_type'    => 'page',
-                'post_author'  => 1
+                'post_status' => 'publish',
+                'post_type' => 'page',
+                'post_author' => 1
             ));
 
             // Set page template
@@ -103,7 +104,7 @@ add_action('after_switch_theme', 'winup_create_pages');
 function winup_scripts()
 {
     wp_enqueue_style('winup-style', get_stylesheet_uri());
-    wp_enqueue_style('winup-main', get_template_directory_uri() . '/assets/css/main.css', array(), '1.1.0');
+    wp_enqueue_style('winup-main', get_template_directory_uri() . '/assets/css/main.css', array(), '1.3.0');
 
     // Google Fonts: Frank Ruhl Libre (Titles) & Inter (Body/UI)
     wp_enqueue_style('winup-fonts', 'https://fonts.googleapis.com/css2?family=Frank+Ruhl+Libre:wght@400;500;700;900&family=Inter:wght@400;500;600;700&display=swap', array(), null);
@@ -167,14 +168,14 @@ function winup_add_lazy_loading($content)
     if (is_admin()) {
         return $content;
     }
-    
+
     // Adiciona loading="lazy" em imagens que não têm o atributo
     $content = preg_replace(
         '/<img((?!loading=)[^>]*)>/i',
         '<img$1 loading="lazy">',
         $content
     );
-    
+
     return $content;
 }
 add_filter('the_content', 'winup_add_lazy_loading', 99);
@@ -336,15 +337,15 @@ function winup_reading_time($post_id = null)
     if (!$post_id) {
         $post_id = get_the_ID();
     }
-    
+
     $content = get_post_field('post_content', $post_id);
     $word_count = str_word_count(strip_tags($content));
     $reading_time = ceil($word_count / 200); // 200 palavras por minuto
-    
+
     if ($reading_time < 1) {
         $reading_time = 1;
     }
-    
+
     return $reading_time . ' min';
 }
 
@@ -361,28 +362,28 @@ function winup_reading_progress_bar()
         <div class="reading-progress-fill"></div>
     </div>
     <script>
-    (function() {
-        var progressBar = document.querySelector('.reading-progress-fill');
-        var article = document.querySelector('.entry-content');
-        if (!progressBar || !article) return;
-        
-        function updateProgress() {
-            var articleTop = article.offsetTop;
-            var articleHeight = article.offsetHeight;
-            var windowHeight = window.innerHeight;
-            var scrollTop = window.scrollY || document.documentElement.scrollTop;
-            
-            var start = articleTop - windowHeight;
-            var end = articleTop + articleHeight - windowHeight;
-            var progress = ((scrollTop - start) / (end - start)) * 100;
-            
-            progress = Math.max(0, Math.min(100, progress));
-            progressBar.style.width = progress + '%';
-        }
-        
-        window.addEventListener('scroll', updateProgress);
-        updateProgress();
-    })();
+        (function () {
+            var progressBar = document.querySelector('.reading-progress-fill');
+            var article = document.querySelector('.entry-content');
+            if (!progressBar || !article) return;
+
+            function updateProgress() {
+                var articleTop = article.offsetTop;
+                var articleHeight = article.offsetHeight;
+                var windowHeight = window.innerHeight;
+                var scrollTop = window.scrollY || document.documentElement.scrollTop;
+
+                var start = articleTop - windowHeight;
+                var end = articleTop + articleHeight - windowHeight;
+                var progress = ((scrollTop - start) / (end - start)) * 100;
+
+                progress = Math.max(0, Math.min(100, progress));
+                progressBar.style.width = progress + '%';
+            }
+
+            window.addEventListener('scroll', updateProgress);
+            updateProgress();
+        })();
     </script>
     <?php
 }
